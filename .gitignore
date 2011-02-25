@@ -1,0 +1,7 @@
+.idea
+EurekaJDemoDB
+*.iml
+*.ipr
+*.iws
+derby.log
+target
