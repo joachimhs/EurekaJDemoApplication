@@ -2,6 +2,7 @@ package org.eurekaj.demo.derby;
 
 import java.sql.*;
 import java.util.Properties;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,7 +18,9 @@ public class DerbyEnvironment {
     private Connection connection;
     private static String CREATE_STATISTICS_TABLE_SQL = "create table Statistics(StatisticID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) CONSTRAINT StatisticID_PK PRIMARY KEY, StatisticName char(50) NOT NULL, StatisticValue double)";
 
+
     public DerbyEnvironment() {
+
     }
 
     public void initializeDatabase() {

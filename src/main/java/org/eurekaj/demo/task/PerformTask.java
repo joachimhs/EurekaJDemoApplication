@@ -13,31 +13,16 @@ import java.sql.SQLException;
  * Time: 1:20 PM
  * To change this template use File | Settings | File Templates.
  */
-public class PerformTask {
+public class PerformTask implements Runnable{
     private DerbyEnvironment derbyEnvironment;
 
     public PerformTask(DerbyEnvironment derbyEnvironment) {
         this.derbyEnvironment = derbyEnvironment;
     }
 
-    public void doWork() {
-        try {
-            System.out.println("Performing Task");
-            if (derbyEnvironment != null) {
-                insertStatIntoDatabase();
-                readStatFromDatabase();
-            }
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-    }
-
 
     private void readStatFromDatabase() throws SQLException {
-        System.out.println("Selecting stat for 'Average executiontime' from Statistics table");
+        //System.out.println("Selecting stat for 'Average executiontime' from Statistics table");
         String sql = "select * from Statistics s where s.StatisticName = ?";
         PreparedStatement preparedStatement = derbyEnvironment.getConnection().prepareStatement(sql);
         preparedStatement.setString(1, "Average executiontime");
@@ -60,7 +45,7 @@ public class PerformTask {
     }
 
     private void insertStatIntoDatabase() throws SQLException {
-        System.out.println("Inserting stat for 'Average executiontime' into Statistics table");
+        //System.out.println("Inserting stat for 'Average executiontime' into Statistics table");
 
         double randomnumber = Math.random() * 100;
 
@@ -70,5 +55,17 @@ public class PerformTask {
         preparedStatement.setString(1, "Average executiontime");
         preparedStatement.setDouble(2, randomnumber);
         preparedStatement.executeUpdate();
+    }
+
+    public void run() {
+        try {
+            //System.out.println("Performing Task");
+            if (derbyEnvironment != null) {
+                insertStatIntoDatabase();
+                readStatFromDatabase();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 }
