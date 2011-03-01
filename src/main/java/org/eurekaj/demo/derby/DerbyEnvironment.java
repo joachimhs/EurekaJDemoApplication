@@ -16,7 +16,8 @@ public class DerbyEnvironment {
     private static String derbyProtocol = "jdbc:derby:";
     private static String derbyDBName = "EurekaJDemoDB";
     private Connection connection;
-    private static String CREATE_STATISTICS_TABLE_SQL = "create table Statistics(StatisticID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) CONSTRAINT StatisticID_PK PRIMARY KEY, StatisticName char(50) NOT NULL, StatisticValue double)";
+    private static String CREATE_STATISTICS_TABLE_SQL = "create table Statistics(StatisticID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) CONSTRAINT StatisticID_PK PRIMARY KEY, StatisticName char(50) NOT NULL, StatisticValue double, StatisticTimestamp timestamp)";
+    private static String CREATE_AGGREGATED_STATISTICS_TABLE_SQL = "create table AggregatedStatistics(AggregatedStatisticID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1,INCREMENT BY 1) CONSTRAINT AggregatedStatisticID_PK PRIMARY KEY, StatisticName char(50) NOT NULL, AggregatedStatisticValue double, AggregatedStatisticTimeperiod BIGINT NOT NULL, UNIQUE (StatisticName, AggregatedStatisticTimeperiod))";
 
 
     public DerbyEnvironment() {
@@ -48,6 +49,14 @@ public class DerbyEnvironment {
             Statement statement = connection.createStatement();
             statement.executeUpdate(CREATE_STATISTICS_TABLE_SQL);
             System.out.println("Statistics Table Created!");
+        }
+
+        rs = metaData.getTables(null, null, "AGGREGATEDSTATISTICS", null);
+        if (!rs.next()) {
+            System.out.println("Creating Database Table 'AggregatedStatistics'");
+            Statement statement = connection.createStatement();
+            statement.executeUpdate(CREATE_AGGREGATED_STATISTICS_TABLE_SQL);
+            System.out.println("AggregatedStatistics Table Created!");
         }
     }
 

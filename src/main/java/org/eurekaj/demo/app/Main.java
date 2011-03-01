@@ -1,7 +1,8 @@
 package org.eurekaj.demo.app;
 
 import org.eurekaj.demo.derby.DerbyEnvironment;
-import org.eurekaj.demo.task.PerformTask;
+import org.eurekaj.demo.task.CalculateAverageTask;
+import org.eurekaj.demo.task.InsertTask;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -24,18 +25,12 @@ public class Main {
     public void startExecuting() {
         DerbyEnvironment derbyEnvironment = new DerbyEnvironment();
         derbyEnvironment.initializeDatabase();
-        long millisStart = System.currentTimeMillis();
 
-        while(true) {
-            while (threadPool.getActiveCount() >= THREADPOOLSIZE) {
-                System.out.println("ThreadPool Full. Sleeping. ");
-                doSleep(1000);
-            }
+        InsertTask task = new InsertTask(derbyEnvironment);
+        threadPool.scheduleAtFixedRate(task, 0, 2500, TimeUnit.MILLISECONDS);
 
-
-            PerformTask task = new PerformTask(derbyEnvironment);
-            threadPool.scheduleAtFixedRate(task, 0, 5000, TimeUnit.MILLISECONDS);
-        }
+        CalculateAverageTask calculateAverageTask = new CalculateAverageTask(derbyEnvironment);
+        threadPool.scheduleAtFixedRate(calculateAverageTask, 15000, 15000, TimeUnit.MILLISECONDS);
     }
 
     public void doSleep(int millis) {
