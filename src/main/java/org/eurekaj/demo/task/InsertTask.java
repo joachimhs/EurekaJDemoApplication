@@ -37,14 +37,39 @@ public class InsertTask implements Runnable{
     public void run() {
         try {
             if (derbyEnvironment != null) {
-                for (int i = 0; i < 1000; i++) {
+                for (int i = 0; i < 100; i++) {
                     insertStatIntoDatabase("Average Execution Time", Math.random() * Math.random() * 100);
                     insertStatIntoDatabase("Calls Per Interval", Math.random() * Math.random() * 100);
                 }
-                System.out.println("Inserted 1000 stats into table Statistics");
+                System.out.println(Thread.currentThread().getId() + ":" + Thread.currentThread().getName() + ". Inserted 100 stats into table Statistics");
+
+                if (derbyEnvironment.getBlockingDelay() > 0) {
+                     performBlockingSleep(derbyEnvironment.getBlockingDelay());
+                }
+
+                if (derbyEnvironment.getNonBlockingDelay() > 0) {
+                    performNonBlockingSleep(derbyEnvironment.getNonBlockingDelay());
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    public void performNonBlockingSleep(int millis) {
+        System.out.println(Thread.currentThread().getId() + ":" + Thread.currentThread().getName() + ". Non Blocking Sleep for: " + millis);
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    public void performBlockingSleep(int millis) {
+        System.out.println(Thread.currentThread().getId() + ":" + Thread.currentThread().getName() + ". Blocking Sleep for: " + millis);
+        long stopBlockAt = System.currentTimeMillis() + millis;
+        while (System.currentTimeMillis() < stopBlockAt) {
+            //Procrastinate with a blocking loop
         }
     }
 }

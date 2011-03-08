@@ -22,8 +22,12 @@ public class CalculateAverageTask implements Runnable {
     }
 
     private Double readStatFromDatabase(String statName, long msFrom, long msTo) throws SQLException {
-        //System.out.println("Selecting stat for 'Average executiontime' from Statistics table");
-        String sql = "select avg(s.StatisticValue) as AverageStatisticValue from Statistics s where s.StatisticName = ? and s.StatisticTimestamp between ? and ?";
+        long before = System.currentTimeMillis();
+
+        String sql = "select avg(s.StatisticValue) as AverageStatisticValue " +
+                "from Statistics s " +
+                "where s.StatisticName = ? " +
+                    "and s.StatisticTimestamp between ? and ?";
 
         PreparedStatement preparedStatement = derbyEnvironment.getConnection().prepareStatement(sql);
         preparedStatement.setString(1, statName);
@@ -36,13 +40,23 @@ public class CalculateAverageTask implements Runnable {
             averageValue = rs.getDouble("AverageStatisticValue");
         }
 
+        long duration = System.currentTimeMillis() - before;
+        System.out.println("CalculateAverageTask.readStatFromDatabase " + duration + " ms.");
         return averageValue;
     }
 
     private void insertStatIntoAggregatedStatistic(String statisticName, Double aggregatedStatisticValue, Long timeperiod) throws SQLException {
-        String selectSql = "select * from AggregatedStatistics as aggStat where aggStat.statisticName = ? and aggStat.AggregatedStatisticTimeperiod = ?";
-        String insertSql = "insert into AggregatedStatistics(statisticName, AggregatedStatisticValue, AggregatedStatisticTimeperiod) values(?, ?, ?)";
-        String updateSql = "update AggregatedStatistics as aggStat set statisticName.AggregatedStatisticValue = ? where aggStat.statisticName = ? and aggStat.AggregatedStatisticTimeperiod = ?";
+        long before = System.currentTimeMillis();
+
+        String selectSql = "select * from AggregatedStatistics as aggStat " +
+                "where aggStat.statisticName = ? " +
+                "and aggStat.AggregatedStatisticTimeperiod = ?";
+        String insertSql = "insert into AggregatedStatistics(statisticName, AggregatedStatisticValue, AggregatedStatisticTimeperiod) " +
+                "values(?, ?, ?)";
+        String updateSql = "update AggregatedStatistics as aggStat " +
+                "set aggStat.AggregatedStatisticValue = ? " +
+                "where aggStat.statisticName = ? " +
+                "and aggStat.AggregatedStatisticTimeperiod = ?";
 
         PreparedStatement preparedStatement = derbyEnvironment.getConnection().prepareStatement(selectSql);
         preparedStatement.setString(1, statisticName);
@@ -68,6 +82,9 @@ public class CalculateAverageTask implements Runnable {
 
             System.out.println("Inserted Aggregated Stat: " + statisticName + " at: " + timeperiod + " with value: " + aggregatedStatisticValue);
         }
+
+        long duration = System.currentTimeMillis() - before;
+        System.out.println("CalculateAverageTask.insertStatIntoAggregatedStatistic " + duration + " ms.");
     }
 
     public void run() {
