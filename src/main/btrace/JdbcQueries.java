@@ -41,7 +41,7 @@ import com.sun.btrace.annotations.*;
 * different types of aggregation function.
 * <p>
 *
-* @author Christian Glencross 
+* @author Christian Glencross
 */
 @BTrace
 public class JdbcQueries {
@@ -70,7 +70,7 @@ public class JdbcQueries {
 
    /**
     * If "--stack" is passed on command line, print the Java stack trace of the JDBC statement.
-    * 
+    *
     * Otherwise we print the SQL.
     */
    private static boolean useStackTrace = Sys.$(2) != null && Strings.strcmp("--stack", Sys.$(2)) == 0;
@@ -80,25 +80,25 @@ public class JdbcQueries {
 
    /**
     * Capture SQL used to create prepared statements.
-    * 
+    *
     * @param args
     *            the list of method parameters. args[1] is the SQL.
     */
-   @OnMethod(clazz = "+org.apache.derby.iapi.jdbc.EngineConnection", method = "/prepare(Call|Statement)/")
+   @OnMethod(clazz = "+java.sql.Connection", method = "/prepare(Call|Statement)/")
    public static void onPrepare(AnyType[] args) {
 //		print("onPrepare: ");
 //		println(str(args[0]));
-		
+
        preparingStatement = useStackTrace ? Threads.jstackStr() : str(args[0]);
    }
 
    /**
     * Cache SQL associated with a prepared statement.
-    * 
+    *
     * @param arg
     *            the return value from the prepareXxx() method.
     */
-   @OnMethod(clazz = "+org.apache.derby.iapi.jdbc.EngineConnection", method = "/prepare(Call|Statement)/", location = @Location(Kind.RETURN))
+   @OnMethod(clazz = "+java.sql.Connection", method = "/prepare(Call|Statement)/", location = @Location(Kind.RETURN))
    public static void onPrepareReturn(@Return Statement preparedStatement) {
 //		println("onPrepareReturn");
        if (preparingStatement != null) {
@@ -111,7 +111,7 @@ public class JdbcQueries {
    // then it must be a prepared statement or callable statement. Get the SQL from the probes up above.
    // Otherwise the SQL is in the first argument.
 
-   @OnMethod(clazz = "+org.apache.derby.impl.jdbc.EmbedStatement", method = "/execute($|Update|Query|Batch)/")
+   @OnMethod(clazz = "+java.sql.Statement", method = "/execute($|Update|Query|Batch)/")
    public static void onExecute(@Self Object currentStatement,  @ProbeMethodName String pmn, AnyType[] args) {
 //		print("onExecute: ");
 //		print(pmn);
@@ -126,17 +126,17 @@ public class JdbcQueries {
 //		println(executingStatement);
    }
 
-   @OnMethod(clazz = "+org.apache.derby.impl.jdbc.EmbedStatement", method = "/execute($|Update|Query|Batch)/", location = @Location(Kind.RETURN))
+   @OnMethod(clazz = "+java.sql.Statement", method = "/execute($|Update|Query|Batch)/", location = @Location(Kind.RETURN))
    public static void onExecuteReturn(@Duration long durationL) {
 //		print("onExecuteReturn: ");
 //		println(str(durationL));
 		Long timePeriod = ((timeNanos() / 15000000000l)*15000);
-		
+
        if (executingStatement == null) {
            return;
        }
-		
-		
+
+
        AggregationKey key = Aggregations.newAggregationKey(executingStatement, timePeriod);
 //       Aggregations.addToAggregation(histogram, key, duration);
        Aggregations.addToAggregation(average, key, durationL);
@@ -150,12 +150,12 @@ public class JdbcQueries {
    }
 
    @OnTimer(7500)
-   public static void onEvent() {		
+   public static void onEvent() {
 		String valueStringFormat = strcat("[Value;", property("btrace.agent"));
-		Aggregations.printAggregation("", average, strcat(valueStringFormat, ";Backend;SQL:%1$s:Average Execution Time;%3$d;ns;%2$s]"));
-		
-		Aggregations.printAggregation("", count, strcat(valueStringFormat, ";Backend;SQL:%1$s:Calls Per Interval;%3$d;n;%2$s]"));
-	
+		Aggregations.printAggregation("", average, strcat(valueStringFormat, ";Backend;SQL:%1$s:Average Execution Time;%3$d;ns;average;%2$s]"));
+
+		Aggregations.printAggregation("", count, strcat(valueStringFormat, ";Backend;SQL:%1$s:Calls Per Interval;%3$d;n;aggregate;%2$s]"));
+
 		// Top 10 queries only
        	Aggregations.truncateAggregation(average, 0);
 		Aggregations.truncateAggregation(count, 0);

@@ -11,7 +11,9 @@
     <build>
 
         <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>src/main/resources</resources>
         <outputDirectory>target/classes</outputDirectory>
+
 
         <plugins>
             <plugin>
